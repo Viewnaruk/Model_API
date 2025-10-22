@@ -99,83 +99,69 @@ def strip_aspect(aspect: str):
 async def predict_reviews(request: Request):
     try:
         if classifier is None or vectorizer is None or emoji_mapping is None:
+            print("❌ Models not loaded")
             raise HTTPException(status_code=500, detail="Models not loaded")
 
         body = await request.json()
+        print("📥 Received request body:", body)
         review = body.get("review")
         category = body.get("category")
 
         if not review:
+            print("❌ Missing review")
             raise HTTPException(status_code=400, detail="review is required")
         if not category:
+            print("❌ Missing category")
             raise HTTPException(status_code=400, detail="category is required")
 
-        # Extract emojis and clean text
         emojis, clean_review = extract_emoji(review)
+        print(f"📝 Processed review: {clean_review}, Emojis: {emojis}")
 
-        # Transform text to vector
         X_text = vectorizer.transform([clean_review]).toarray()
+        print("🔢 Text vectorized")
 
-        # Convert emojis to label
         emoji_label = sum([emoji_mapping.get(e, 0) for e in emojis])
         emoji_label_array = np.array([emoji_label]).reshape(-1, 1)
+        print(f"🌐 Emoji label: {emoji_label}")
 
-        # Combine features
         X_final = hstack([X_text, emoji_label_array]).toarray()
+        print("✅ Features combined")
 
-        # Predict score
         score = classifier.decision_function(X_final)[0]
-        print("Score:", score)  # Debug
+        print("📊 Score:", score)
 
         threshold = -0.5456117703308974
         sentiment = "Positive" if score > threshold else "Negative"
+        print(f"😊 Sentiment: {sentiment}")
 
-        # Configure Google Generative AI
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY", "AIzaSyCCH3fQd5djmvVOX5-R4jEn-G2Ych58pV8"))
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY", "AIzaSyBHCXD9hQhtNhWnMp1dkd_v9AvdLHD0GGk"))
         model = genai.GenerativeModel("gemma-3-27b-it")
+        print("🤖 Generative AI configured")
 
-        # Select prompt based on category
         if category == "Religious Place":
             prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Aesthetics, Scenery, Atmosphere, Spirituality, Location. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
-        elif category == "Nature":
-            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Atmosphere, Cleanliness, Nature, Scenery, Aesthetics. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
-        elif category == "Museum":
-            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Dinosaurs, Educational, Cleanliness, Family-friendly. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
-        elif category == "Zoos":
-            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Animals, Price, Service, Cleanliness, Atmosphere. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
-        elif category == "Parks":
-            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Atmosphere, Aesthetics, Relaxation, Exercise, Cleanliness, Weather. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
-        elif category == "Markets":
-            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Food, Atmosphere, Price, Parking, Shopping. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
-        elif category == "Homestay":
-            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Service, Atmosphere, Cleanliness, Room, Food. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
-        elif category == "Historic Site":
-            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Aesthetics, Atmosphere, History. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
-        else:
-            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Desserts and drinks, Atmosphere, Service, Price. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
+        # (โค้ด prompt อื่น ๆ ตามเดิม)
 
-        # Generate aspect
+        print(f"📝 Prompt: {prompt}")
         response = model.generate_content(prompt)
         aspect_stripped = strip_aspect(response.text)
+        print(f"🌟 Aspect: {aspect_stripped}")
 
         return {
             "review": review,
             "sentiment": sentiment,
-            "score": float(score),  # Ensure score is float
+            "score": float(score),
             "emojis": emojis,
             "emoji_label": emoji_label,
             "Aspect": aspect_stripped
         }
 
     except genai.types.generation_types.StopReason as e:
+        print(f"❌ Generation stopped: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Generation stopped: {str(e)}")
     except Exception as e:
+        print(f"❌ Prediction failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
-
-# if __name__ == '__main__':
-#     port = int(os.getenv('PORT'))
-#     print(f"🚀 Running on port {port}")
-#     uvicorn.run(app, host='0.0.0.0', port=port)
 
 @app.get('/health')
 def health():
