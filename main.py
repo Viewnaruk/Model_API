@@ -159,6 +159,9 @@ async def predict_reviews(request: Request):
     except genai.types.generation_types.StopReason as e:
         print(f"❌ Generation stopped: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Generation stopped: {str(e)}")
+    except genai.types.GenerateContentResponse as e:  # จับ response error
+        print(f"❌ Generation response error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
     except Exception as e:
         print(f"❌ Prediction failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
