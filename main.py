@@ -131,7 +131,7 @@ async def predict_reviews(request: Request):
         sentiment = "Positive" if score > threshold else "Negative"
 
         # Configure Google Generative AI
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY", "AIzaSyBHCXD9hQhtNhWnMp1dkd_v9AvdLHD0GGk"))
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY", "AIzaSyCCH3fQd5djmvVOX5-R4jEn-G2Ych58pV8"))
         model = genai.GenerativeModel("gemma-3-27b-it")
 
         # Select prompt based on category
