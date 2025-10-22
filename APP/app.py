@@ -170,5 +170,5 @@ async def predict_reviews(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
-if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=int(os.getenv('PORT', 9000)))
+# if __name__ == '__main__':
+#     uvicorn.run(app, host='0.0.0.0', port=int(os.getenv('PORT', 9000)))
