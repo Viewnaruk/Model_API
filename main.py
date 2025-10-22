@@ -177,5 +177,10 @@ async def predict_reviews(request: Request):
 #     print(f"🚀 Running on port {port}")
 #     uvicorn.run(app, host='0.0.0.0', port=port)
 
+@app.get('/health')
+def health():
+    print("🩺 Health check called on port", os.getenv('PORT', 'unknown'))
+    return {'status': 'healthy'}
+
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8080)
