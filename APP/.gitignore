@@ -1,0 +1,20 @@
+# ไฟล์โมเดลใหญ่
+APP\sentiment_model.pkl
+APP\emoji_mapping.pkl
+APP\vectorizer.pkl
+
+
+# ไฟล์ pycache ของ Python
+__pycache__/
+*.pyc
+*.pyo
+
+# virtual environment
+venv/
+env/
+
+# editor / OS files
+.vscode/
+.idea/
+.DS_Store
+*.log
