@@ -45,13 +45,15 @@ emoji_mapping = None
 
 # Download and load models on startup
 @app.on_event("startup")
-async def load_models():
+def startup_event():
     global classifier, vectorizer, emoji_mapping
+    print("🌍 Environment:", os.environ)  # ดู environment
+    port = int(os.getenv('PORT'))
+    print(f"🚀 Running on port {port}")  # แสดง port ที่ใช้
     try:
         download_if_missing(MODEL_ID, MODEL_PATH)
         download_if_missing(VECTORIZER_ID, VECTORIZER_PATH)
         download_if_missing(EMOJI_ID, EMOJI_PATH)
-
         classifier = joblib.load(MODEL_PATH)
         vectorizer = joblib.load(VECTORIZER_PATH)
         emoji_mapping = joblib.load(EMOJI_PATH)
@@ -170,7 +172,10 @@ async def predict_reviews(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
+# if __name__ == '__main__':
+#     port = int(os.getenv('PORT'))
+#     print(f"🚀 Running on port {port}")
+#     uvicorn.run(app, host='0.0.0.0', port=port)
+
 if __name__ == '__main__':
-    port = int(os.getenv('PORT'))
-    print(f"🚀 Running on port {port}")
-    uvicorn.run(app, host='0.0.0.0', port=port)
+    uvicorn.run(app, host='0.0.0.0', port=8080)
