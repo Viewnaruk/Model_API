@@ -27,33 +27,22 @@ except Exception as e:
     print(f"❌ MongoDB connection error: {e}")
     raise
 
-# Google Drive file IDs
-MODEL_ID = "1pbekIy74RNW4w5dmCMKbvvtia2kp5Chf"
-VECTORIZER_ID = "1VBNElPcxYwXuVF7uxH-tq4kSrsOq4lZt"
-EMOJI_ID = "1sVSv1GfhPaj2c_WZQklMaYJSx48LY_uR"
-
 # Paths
-os.makedirs("APP", exist_ok=True)
-MODEL_PATH = "APP/sentiment_model.pkl"
-VECTORIZER_PATH = "APP/vectorizer.pkl"
-EMOJI_PATH = "APP/emoji_mapping.pkl"
+MODEL_PATH = "sentiment_model.pkl"
+VECTORIZER_PATH = "vectorizer.pkl"
+EMOJI_PATH = "emoji_mapping.pkl"
 
 # Global variables for models
 classifier = None
 vectorizer = None
 emoji_mapping = None
 
-# Download and load models on startup
+# Load models on startup
 @app.on_event("startup")
 def startup_event():
     global classifier, vectorizer, emoji_mapping
-    print("🌍 Environment:", os.environ)  # ดู environment
-    port = int(os.getenv('PORT'))
-    print(f"🚀 Running on port {port}")  # แสดง port ที่ใช้
+    print("🚀 Starting up and loading models...")
     try:
-        # download_if_missing(MODEL_ID, MODEL_PATH)
-        download_if_missing(VECTORIZER_ID, VECTORIZER_PATH)
-        download_if_missing(EMOJI_ID, EMOJI_PATH)
         classifier = joblib.load(MODEL_PATH)
         vectorizer = joblib.load(VECTORIZER_PATH)
         emoji_mapping = joblib.load(EMOJI_PATH)
@@ -62,14 +51,10 @@ def startup_event():
         print(f"❌ Error loading models: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to load models: {e}")
 
-# Utility function to download files
-def download_if_missing(file_id, save_path):
-    if not os.path.exists(save_path):
-        print(f"📥 Downloading {save_path} from Google Drive...")
-        url = f"https://drive.google.com/uc?id={file_id}"
-        gdown.download(url, save_path, quiet=False)
-    else:
-        print(f"✅ Found {save_path}")
+# Example root endpoint
+@app.get("/")
+def read_root():
+    return {"message": "Model API is running!"}
 
 # Regex for emoji extraction
 emoji_pattern = re.compile("["
