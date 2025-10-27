@@ -27,29 +27,11 @@ except Exception as e:
     print(f"❌ MongoDB connection error: {e}")
     raise
 
-# Paths
-MODEL_PATH = "sentiment_model.pkl"
-VECTORIZER_PATH = "vectorizer.pkl"
-EMOJI_PATH = "emoji_mapping.pkl"
-
 # Global variables for models
-classifier = None
-vectorizer = None
-emoji_mapping = None
+classifier = "sentiment_model.pkl"
+vectorizer = "vectorizer.pkl"
+emoji_mapping = "emoji_mapping.pkl"
 
-# Load models on startup
-@app.on_event("startup")
-def startup_event():
-    global classifier, vectorizer, emoji_mapping
-    print("🚀 Starting up and loading models...")
-    try:
-        classifier = joblib.load(MODEL_PATH)
-        vectorizer = joblib.load(VECTORIZER_PATH)
-        emoji_mapping = joblib.load(EMOJI_PATH)
-        print("🎯 Models loaded successfully!")
-    except Exception as e:
-        print(f"❌ Error loading models: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to load models: {e}")
 
 # Example root endpoint
 @app.get("/")
