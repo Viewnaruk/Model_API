@@ -12,6 +12,8 @@ from pymongo import MongoClient
 from bson import ObjectId
 import os
 import gdown
+import os
+import subprocess
 
 # Initialize FastAPI app
 app = FastAPI(title="Tourist Reviews API", version="1.0.0")
@@ -44,6 +46,8 @@ def startup_event():
     print("🚀 Starting up and loading models...")
     try:
         print(f"📂 Checking files: {MODEL_PATH}, {VECTORIZER_PATH}, {EMOJI_PATH}")
+        # ดึงไฟล์จาก LFS (ถ้ายังไม่ถูกดึง)
+        subprocess.run(["git", "lfs", "pull"], check=True)
         for path in [MODEL_PATH, VECTORIZER_PATH, EMOJI_PATH]:
             if not os.path.exists(path):
                 raise FileNotFoundError(f"File not found: {path}")
@@ -54,6 +58,9 @@ def startup_event():
     except FileNotFoundError as e:
         print(f"❌ Error loading models: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to load models: {str(e)}")
+    except (KeyError, ValueError) as e:
+        print(f"❌ Error loading models: Incompatible pickle file - {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load models: Incompatible pickle file - {str(e)}")
     except Exception as e:
         print(f"❌ Error loading models: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to load models: {str(e)}")
