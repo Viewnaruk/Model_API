@@ -28,9 +28,9 @@ except Exception as e:
     raise
 
 # Paths (ปรับตามตำแหน่งไฟล์)
-MODEL_PATH = "sentiment_model.pkl"  # เปลี่ยนถ้าอยู่ในโฟลเดอร์อื่น
-VECTORIZER_PATH = "vectorizer.pkl"
-EMOJI_PATH = "emoji_mapping.pkl"
+MODEL_PATH = "sentiment_modelใหม่.pkl"  # เปลี่ยนถ้าอยู่ในโฟลเดอร์อื่น
+VECTORIZER_PATH = "vectorizerใหม่.pkl"
+EMOJI_PATH = "emoji_mappingใหม่.pkl"
 
 # Global variables for models
 classifier = None
