@@ -14,6 +14,8 @@ import os
 import gdown
 import os
 import subprocess
+from scipy.sparse import csr_matrix, hstack
+
 
 # Initialize FastAPI app
 app = FastAPI(title="Tourist Reviews API", version="1.0.0")
@@ -125,9 +127,10 @@ async def predict_reviews(request: Request):
 
         emoji_label = sum([emoji_mapping.get(e, 0) for e in emojis])
         emoji_label_array = np.array([emoji_label]).reshape(-1, 1)
+        emoji_label_sparse = csr_matrix(emoji_label_array)
         print(f"🌐 Emoji label: {emoji_label}")
 
-        X_final = hstack([X_text, emoji_label_array]).toarray()
+        X_final = hstack([X_text, emoji_label_sparse]).toarray()
         print("✅ Features combined")
 
         score = classifier.decision_function(X_final)[0]
@@ -137,13 +140,29 @@ async def predict_reviews(request: Request):
         sentiment = "Positive" if score > threshold else "Negative"
         print(f"😊 Sentiment: {sentiment}")
 
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY", "AIzaSyBHCXD9hQhtNhWnMp1dkd_v9AvdLHD0GGk"))
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY", "AIzaSyBXtuYpPacLO7FGFR3BZamjgYCWhb8VTFo"))
         model = genai.GenerativeModel("gemma-3-27b-it")
         print("🤖 Generative AI configured")
 
         if category == "Religious Place":
             prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Aesthetics, Scenery, Atmosphere, Spirituality, Location. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
-        # (โค้ด prompt อื่น ๆ ตามเดิม)
+        elif category == "Nature":
+            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Atmosphere, Cleanliness, Nature, Scenery, Aesthetics. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
+        elif category == "Museum":
+            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Dinosaurs, Educational, Cleanliness, Family-friendly. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
+        elif category == "Zoos":
+            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Animals, Price, Service, Cleanliness, Atmosphere. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
+        elif category == "Parks":
+            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Atmosphere, Aesthetics, Relaxation, Exercise, Cleanliness, Weather. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
+        elif category == "Markets":
+            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Food, Atmosphere, Price, Parking, Shopping. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
+        elif category == "Homestay":
+            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Service, Atmosphere, Cleanliness, Room, Food. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
+        elif category == "Historic Site":
+            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Aesthetics, Atmosphere, History. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
+        else:
+            prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Desserts and drinks, Atmosphere, Service, Price. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
+
 
         print(f"📝 Prompt: {prompt}")
         response = model.generate_content(prompt)
@@ -159,16 +178,15 @@ async def predict_reviews(request: Request):
             "Aspect": aspect_stripped
         }
 
-    except genai.types.generation_types.StopReason as e:
-        print(f"❌ Generation stopped: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Generation stopped: {str(e)}")
-    except genai.types.GenerateContentResponse as e:  # จับ response error
-        print(f"❌ Generation response error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
     except Exception as e:
-        print(f"❌ Prediction failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
-
+         error_text = str(e)
+         if "stop" in error_text.lower():
+            print(f"❌ Generation stopped: {error_text}")
+            raise HTTPException(status_code=400, detail=f"Generation stopped: {error_text}")
+         else:
+            print(f"❌ Prediction failed: {error_text}")
+            raise HTTPException(status_code=500, detail=f"Prediction failed: {error_text}")
+    
 @app.get('/health')
 def health():
     print("🩺 Health check called on port", os.getenv('PORT', 'unknown'))
