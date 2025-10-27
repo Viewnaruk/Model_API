@@ -29,43 +29,46 @@ except Exception as e:
     print(f"❌ MongoDB connection error: {e}")
     raise
 
-# Paths (ปรับตามตำแหน่งไฟล์)
-MODEL_PATH = "sentiment_modelใหม่.pkl"  # เปลี่ยนถ้าอยู่ในโฟลเดอร์อื่น
-VECTORIZER_PATH = "vectorizerใหม่.pkl"
-EMOJI_PATH = "emoji_mappingใหม่.pkl"
+# Google Drive file IDs
+MODEL_ID = "1pCgKI_dgylh5Gx9ZAzSKK9KMAUqu4A6t"
+VECTORIZER_ID = "1R5m6N1GYL9FSZebQQEmF1GCsAUX4Mnse"
+EMOJI_ID = "1QSsIm2XrDEvwYbblpZDroALO1xA0-sqB"
+
+# Paths
+MODEL_PATH = "sentiment_model.pkl"
+VECTORIZER_PATH = "vectorizer.pkl"
+EMOJI_PATH = "emoji_mapping.pkl"
 
 # Global variables for models
 classifier = None
 vectorizer = None
 emoji_mapping = None
 
-# Load models on startup
+# Download and load models on startup
 @app.on_event("startup")
-def startup_event():
+async def load_models():
     global classifier, vectorizer, emoji_mapping
-    print("🚀 Starting up and loading models...")
     try:
-        print(f"📂 Checking files: {MODEL_PATH}, {VECTORIZER_PATH}, {EMOJI_PATH}")
-        # ดึงไฟล์จาก LFS (ถ้ายังไม่ถูกดึง)
-        subprocess.run(["git", "lfs", "pull"], check=True)
-        for path in [MODEL_PATH, VECTORIZER_PATH, EMOJI_PATH]:
-            if not os.path.exists(path):
-                raise FileNotFoundError(f"File not found: {path}")
+        download_if_missing(MODEL_ID, MODEL_PATH)
+        download_if_missing(VECTORIZER_ID, VECTORIZER_PATH)
+        download_if_missing(EMOJI_ID, EMOJI_PATH)
+
         classifier = joblib.load(MODEL_PATH)
         vectorizer = joblib.load(VECTORIZER_PATH)
         emoji_mapping = joblib.load(EMOJI_PATH)
         print("🎯 Models loaded successfully!")
-    except FileNotFoundError as e:
-        print(f"❌ Error loading models: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to load models: {str(e)}")
-    except (KeyError, ValueError) as e:
-        print(f"❌ Error loading models: Incompatible pickle file - {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to load models: Incompatible pickle file - {str(e)}")
     except Exception as e:
-        print(f"❌ Error loading models: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to load models: {str(e)}")
+        print(f"❌ Error loading models: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to load models: {e}")
 
-
+# Utility function to download files
+def download_if_missing(file_id, save_path):
+    if not os.path.exists(save_path):
+        print(f"📥 Downloading {save_path} from Google Drive...")
+        url = f"https://drive.google.com/uc?id={file_id}"
+        gdown.download(url, save_path, quiet=False)
+    else:
+        print(f"✅ Found {save_path}")
 # Example root endpoint
 @app.get("/")
 def read_root():
