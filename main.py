@@ -34,7 +34,7 @@ EMOJI_ID = "1sVSv1GfhPaj2c_WZQklMaYJSx48LY_uR"
 
 # Paths
 # os.makedirs("APP", exist_ok=True)
-# MODEL_PATH = "APP/sentiment_model.pkl"
+MODEL_PATH = "sentiment_model.pkl"
 VECTORIZER_PATH = "vectorizer.pkl"
 EMOJI_PATH = "emoji_mapping.pkl"
 
@@ -54,7 +54,7 @@ def startup_event():
         # download_if_missing(MODEL_ID, MODEL_PATH)
         download_if_missing(VECTORIZER_ID, VECTORIZER_PATH)
         download_if_missing(EMOJI_ID, EMOJI_PATH)
-        # classifier = joblib.load(MODEL_PATH)
+        classifier = joblib.load(MODEL_PATH)
         vectorizer = joblib.load(VECTORIZER_PATH)
         emoji_mapping = joblib.load(EMOJI_PATH)
         print("🎯 Models loaded successfully!")
