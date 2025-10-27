@@ -27,10 +27,36 @@ except Exception as e:
     print(f"❌ MongoDB connection error: {e}")
     raise
 
+# Paths (ปรับตามตำแหน่งไฟล์)
+MODEL_PATH = "sentiment_model.pkl"  # เปลี่ยนถ้าอยู่ในโฟลเดอร์อื่น
+VECTORIZER_PATH = "vectorizer.pkl"
+EMOJI_PATH = "emoji_mapping.pkl"
+
 # Global variables for models
-classifier = "sentiment_model.pkl"
-vectorizer = "vectorizer.pkl"
-emoji_mapping = "emoji_mapping.pkl"
+classifier = None
+vectorizer = None
+emoji_mapping = None
+
+# Load models on startup
+@app.on_event("startup")
+def startup_event():
+    global classifier, vectorizer, emoji_mapping
+    print("🚀 Starting up and loading models...")
+    try:
+        print(f"📂 Checking files: {MODEL_PATH}, {VECTORIZER_PATH}, {EMOJI_PATH}")
+        for path in [MODEL_PATH, VECTORIZER_PATH, EMOJI_PATH]:
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"File not found: {path}")
+        classifier = joblib.load(MODEL_PATH)
+        vectorizer = joblib.load(VECTORIZER_PATH)
+        emoji_mapping = joblib.load(EMOJI_PATH)
+        print("🎯 Models loaded successfully!")
+    except FileNotFoundError as e:
+        print(f"❌ Error loading models: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load models: {str(e)}")
+    except Exception as e:
+        print(f"❌ Error loading models: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load models: {str(e)}")
 
 
 # Example root endpoint
