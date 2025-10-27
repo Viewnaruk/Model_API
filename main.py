@@ -33,10 +33,10 @@ VECTORIZER_ID = "1VBNElPcxYwXuVF7uxH-tq4kSrsOq4lZt"
 EMOJI_ID = "1sVSv1GfhPaj2c_WZQklMaYJSx48LY_uR"
 
 # Paths
-os.makedirs(exist_ok=True)
-MODEL_PATH = "app/APP/sentiment_model.pkl"
-VECTORIZER_PATH = "app/APP/vectorizer.pkl"
-EMOJI_PATH = "app/APP/emoji_mapping.pkl"
+os.makedirs("APP", exist_ok=True)
+MODEL_PATH = "APP/sentiment_model.pkl"
+VECTORIZER_PATH = "APP/vectorizer.pkl"
+EMOJI_PATH = "APP/emoji_mapping.pkl"
 
 # Global variables for models
 classifier = None
