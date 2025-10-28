@@ -26,9 +26,9 @@ try:
     FASTAPI_URL=("https://your-fastapi-service.onrender.com")
     db = client['Web_App_Tourist_Reviews']
     collection = db['Review']
-    print("✅ MongoDB connected successfully!")
+    print("MongoDB connected successfully!")
 except Exception as e:
-    print(f"❌ MongoDB connection error: {e}")
+    print(f"MongoDB connection error: {e}")
     raise
 
 # Google Drive file IDs
@@ -58,7 +58,7 @@ async def load_models():
         classifier = joblib.load(MODEL_PATH)
         vectorizer = joblib.load(VECTORIZER_PATH)
         emoji_mapping = joblib.load(EMOJI_PATH)
-        print("🎯 Models loaded successfully!")
+        print("Models loaded successfully!")
     except Exception as e:
         print(f"❌ Error loading models: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to load models: {e}")
@@ -66,11 +66,11 @@ async def load_models():
 # Utility function to download files
 def download_if_missing(file_id, save_path):
     if not os.path.exists(save_path):
-        print(f"📥 Downloading {save_path} from Google Drive...")
+        print(f"Downloading {save_path} from Google Drive...")
         url = f"https://drive.google.com/uc?id={file_id}"
         gdown.download(url, save_path, quiet=False)
     else:
-        print(f"✅ Found {save_path}")
+        print(f"Found {save_path}")
 # Example root endpoint
 @app.get("/")
 def read_root():
@@ -104,7 +104,7 @@ def strip_aspect(aspect: str):
 async def predict_reviews(request: Request):
     try:
         if classifier is None or vectorizer is None or emoji_mapping is None:
-            print("❌ Models not loaded")
+            print("Models not loaded")
             raise HTTPException(status_code=500, detail="Models not loaded")
 
         body = await request.json()
@@ -113,36 +113,36 @@ async def predict_reviews(request: Request):
         category = body.get("category")
 
         if not review:
-            print("❌ Missing review")
+            print("Missing review")
             raise HTTPException(status_code=400, detail="review is required")
         if not category:
-            print("❌ Missing category")
+            print("Missing category")
             raise HTTPException(status_code=400, detail="category is required")
 
         emojis, clean_review = extract_emoji(review)
-        print(f"📝 Processed review: {clean_review}, Emojis: {emojis}")
+        print(f"Processed review: {clean_review}, Emojis: {emojis}")
 
         X_text = vectorizer.transform([clean_review]).toarray()
-        print("🔢 Text vectorized")
+        print("Text vectorized")
 
         emoji_label = sum([emoji_mapping.get(e, 0) for e in emojis])
         emoji_label_array = np.array([emoji_label]).reshape(-1, 1)
         emoji_label_sparse = csr_matrix(emoji_label_array)
-        print(f"🌐 Emoji label: {emoji_label}")
+        print(f"Emoji label: {emoji_label}")
 
         X_final = hstack([X_text, emoji_label_sparse]).toarray()
-        print("✅ Features combined")
+        print("Features combined")
 
         score = classifier.decision_function(X_final)[0]
-        print("📊 Score:", score)
+        print("Score:", score)
 
         threshold = -0.5456117703308974
         sentiment = "Positive" if score > threshold else "Negative"
-        print(f"😊 Sentiment: {sentiment}")
+        print(f"Sentiment: {sentiment}")
 
         genai.configure(api_key=os.getenv("GOOGLE_API_KEY", "AIzaSyBXtuYpPacLO7FGFR3BZamjgYCWhb8VTFo"))
         model = genai.GenerativeModel("gemma-3-27b-it")
-        print("🤖 Generative AI configured")
+        print("Generative AI configured")
 
         if category == "Religious Place":
             prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Aesthetics, Scenery, Atmosphere, Spirituality, Location. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
@@ -164,10 +164,10 @@ async def predict_reviews(request: Request):
             prompt = f"""Analyze the following review text: '{review}'. Your task is to classify the single most prominent aspect discussed in the text. You must respond with only one word, chosen from this exact list of categories: Desserts and drinks, Atmosphere, Service, Price. If the review content does not clearly and strongly align with any of these five options, respond with Other."""
 
 
-        print(f"📝 Prompt: {prompt}")
+        print(f"Prompt: {prompt}")
         response = model.generate_content(prompt)
         aspect_stripped = strip_aspect(response.text)
-        print(f"🌟 Aspect: {aspect_stripped}")
+        print(f"Aspect: {aspect_stripped}")
 
         return {
             "review": review,
@@ -181,15 +181,15 @@ async def predict_reviews(request: Request):
     except Exception as e:
          error_text = str(e)
          if "stop" in error_text.lower():
-            print(f"❌ Generation stopped: {error_text}")
+            print(f"Generation stopped: {error_text}")
             raise HTTPException(status_code=400, detail=f"Generation stopped: {error_text}")
          else:
-            print(f"❌ Prediction failed: {error_text}")
+            print(f"Prediction failed: {error_text}")
             raise HTTPException(status_code=500, detail=f"Prediction failed: {error_text}")
     
 @app.get('/health')
 def health():
-    print("🩺 Health check called on port", os.getenv('PORT', 'unknown'))
+    print("Health check called on port", os.getenv('PORT', 'unknown'))
     return {'status': 'healthy'}
 
 # if __name__ == '__main__':
