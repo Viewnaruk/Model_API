@@ -60,7 +60,7 @@ async def load_models():
         emoji_mapping = joblib.load(EMOJI_PATH)
         print("Models loaded successfully!")
     except Exception as e:
-        print(f"❌ Error loading models: {e}")
+        print(f"Error loading models: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to load models: {e}")
 
 # Utility function to download files
@@ -108,7 +108,7 @@ async def predict_reviews(request: Request):
             raise HTTPException(status_code=500, detail="Models not loaded")
 
         body = await request.json()
-        print("📥 Received request body:", body)
+        print("Received request body:", body)
         review = body.get("review")
         category = body.get("category")
 
