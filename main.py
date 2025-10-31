@@ -34,7 +34,7 @@ except Exception as e:
 # Google Drive file IDs
 MODEL_ID = "1pCgKI_dgylh5Gx9ZAzSKK9KMAUqu4A6t"
 VECTORIZER_ID = "1R5m6N1GYL9FSZebQQEmF1GCsAUX4Mnse"
-EMOJI_ID = "1QSsIm2XrDEvwYbblpZDroALO1xA0-sqB"
+EMOJI_ID = "1ptCHB_v_yp3e34_B5muZSqoW2IzG4Uih"
 
 # Paths
 MODEL_PATH = "sentiment_model.pkl"
